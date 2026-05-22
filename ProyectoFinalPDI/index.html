@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AforoLAB UAO — Monitoreo de aforo en tiempo real</title>
+  <meta name="description" content="Sistema de visión computacional para monitorear el aforo de laboratorios de la UAO con YOLOv8 + DeepSORT." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header id="site-header">
+    <div class="header-inner">
+      <a class="logo-box" href="index.html">
+        <div class="logo-badge">UAO</div>
+        <span class="uni-name">Universidad Autónoma de Occidente</span>
+      </a>
+      <div class="site-title">Aforo<span>LAB</span></div>
+      <div class="header-right">
+        <a class="nav-link" href="admin.html">Dashboard</a>
+        <div class="status-pill">
+          <div class="dot-wrap">
+            <div class="dot-ping"></div>
+            <div class="dot-inner"></div>
+          </div>
+          <span>Sistema activo</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- LABFINDER -->
+    <section id="labfinder-section">
+      <h2>¿Está disponible mi laboratorio?</h2>
+      <p class="section-sub">Consulta el aforo en tiempo real detectado por el pipeline YOLOv8 + DeepSORT.</p>
+      <div class="lf-select">
+        <label for="lab-select">Selecciona un laboratorio</label>
+        <select id="lab-select"></select>
+      </div>
+      <div class="lf-grid" id="finder-grid"></div>
+    </section>
+
+    <!-- LABS GRID -->
+    <section id="grid-section">
+      <div class="section-header">
+        <div>
+          <h2>Estado general de laboratorios</h2>
+          <p class="section-sub">Ordenados por nivel de ocupación · auto-refresh cada 30 s</p>
+        </div>
+      </div>
+      <div class="labs-grid" id="labs-grid"></div>
+    </section>
+
+    <!-- ALERTS -->
+    <section id="alerts-section">
+      <h2>Alertas activas</h2>
+      <p class="section-sub">Generadas automáticamente por la lógica de aforo del sistema.</p>
+      <div id="alerts-container"></div>
+    </section>
+
+    <!-- REPORT ISSUE -->
+    <section id="report-section">
+      <div class="report-title-row">
+        <div class="report-icon-box">⚠️</div>
+        <div>
+          <h2>Reportar error de conteo</h2>
+          <p class="section-sub">Si detectas una inconsistencia en el conteo de un laboratorio, repórtala aquí.</p>
+        </div>
+      </div>
+      <div class="report-grid">
+        <div class="card">
+          <div class="form-group">
+            <label for="r-lab">Laboratorio *</label>
+            <select id="r-lab"></select>
+            <p id="r-lab-info" class="form-hint"></p>
+          </div>
+          <div class="form-group">
+            <label for="r-type">Tipo de error *</label>
+            <select id="r-type">
+              <option value="">Selecciona el tipo</option>
+              <option value="conteo-alto">El sistema cuenta MÁS personas de las que hay</option>
+              <option value="conteo-bajo">El sistema cuenta MENOS personas de las que hay</option>
+              <option value="camara">Problema con la cámara o señal</option>
+              <option value="otro">Otro error</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="r-count">Conteo real observado</label>
+              <input id="r-count" type="number" min="0" placeholder="Ej: 15" />
+            </div>
+            <div class="form-group">
+              <label for="r-email">Correo institucional</label>
+              <input id="r-email" type="email" placeholder="usuario@uao.edu.co" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="r-desc">Descripción del problema *</label>
+            <textarea id="r-desc" rows="4" placeholder="Describe lo observado: hora aproximada, condiciones de iluminación, ubicación de las personas, etc."></textarea>
+          </div>
+          <button class="btn btn-primary btn-full" id="submit-report">✉️ Enviar reporte</button>
+          <div id="r-success" class="success-msg" style="display:none">✅ Reporte enviado. Equipo PDI lo revisará pronto.</div>
+        </div>
+        <div class="card">
+          <h3 id="report-count-title">Reportes recientes (0)</h3>
+          <div id="report-list" style="margin-top:14px">
+            <p class="empty-msg">Aún no hay reportes registrados en esta sesión.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-col">
+        <div class="footer-col-top">
+          <div class="footer-logo">UAO</div>
+          <div>
+            <div class="footer-title">Universidad Autónoma de Occidente</div>
+            <div class="footer-text">Cali — Colombia</div>
+          </div>
+        </div>
+      </div>
+      <div class="footer-col">
+        <div class="footer-title">Equipo AforoLAB</div>
+        <div class="footer-text">Proyecto de Procesamiento Digital de Imágenes</div>
+        <div class="footer-text">YOLOv8 · DeepSORT · OpenCV · Flask</div>
+      </div>
+      <div class="footer-col footer-right">
+        <div class="footer-title">Materia: PDI</div>
+        <div class="footer-text">Semestre 2025</div>
+        <div class="footer-copy">© 2025 AforoLAB-UAO</div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
