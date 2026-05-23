@@ -1,106 +1,137 @@
 import os
-import io
-from flask import Flask, jsonify, send_file
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseDownload
+import random
+from flask import Flask, jsonify, send_from_directory
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
-# Configuration
-SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
-FOLDER_ID = '1tD5yicS3L3uUfl_j9asWk3PsWF4h5I4o'  # From the provided URL
+# ======================================
+# RUTAS
+# ======================================
 
-def get_drive_service():
-    """Create and return a Google Drive service object."""
-    # Try to get credentials from environment variable or default file
-    creds_path = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
-    if not creds_path:
-        # Look for service-account.json in current directory
-        creds_path = 'service-account.json'
-        if not os.path.exists(creds_path):
-            raise FileNotFoundError(
-                f"Service account credentials not found. Set GOOGLE_APPLICATION_CREDENTIALS "
-                f"environment variable or place service-account.json in {os.getcwd()}"
-            )
-    
-    credentials = service_account.Credentials.from_service_account_file(
-        creds_path, scopes=SCOPES)
-    return build('drive', 'v3', credentials=credentials)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Subir un nivel desde /backend
+PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, '..'))
+
+# Ruta de la carpeta del dataset
+DATASET_FOLDER = os.path.join(PROJECT_ROOT, 'Lab_aforo')
+
+# ======================================
+# MAPEO DE LABORATORIOS
+# ======================================
+
+LAB_FOLDER_MAP = {
+    'lab-fisica': 'fisica',
+    'lab-grafica': 'grafica',
+    'lab-informatica': 'informatica',
+    'lab-ingenieria': 'ingenieros',
+    'zonas-estudio': 'zonaestudio'
+}
+
+# Carpetas del dataset
+CATEGORIES = [
+    'Labs_Disponibles',
+    'Labs_Llenos',
+    'Labs_Vacios'
+]
+
+# ======================================
+# ROOT
+# ======================================
 
 @app.route('/')
 def index():
     return jsonify({
-        'message': 'Google Drive Backend API',
-        'endpoints': {
-            '/files': 'List files in the specified folder',
-            '/files/<file_id>': 'Download a specific file by ID'
-        }
+        'message': 'AforoLAB API funcionando',
+        'dataset': DATASET_FOLDER
     })
 
-@app.route('/files')
-def list_files():
-    """List all files in the specified Google Drive folder."""
-    try:
-        service = get_drive_service()
-        # Query for files in the specified folder
-        results = service.files().list(
-            q=f"'{FOLDER_ID}' in parents and trashed=false",
-            fields="nextPageToken, files(id, name, mimeType, size, modifiedTime)",
-            pageSize=100
-        ).execute()
-        
-        items = results.get('files', [])
-        
-        # Format the response
-        files = []
-        for item in items:
-            files.append({
-                'id': item['id'],
-                'name': item['name'],
-                'mimeType': item['mimeType'],
-                'size': item.get('size', '0'),
-                'modifiedTime': item['modifiedTime']
-            })
-        
-        return jsonify({
-            'folder_id': FOLDER_ID,
-            'count': len(files),
-            'files': files
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+# ======================================
+# OBTENER IMAGEN DE LAB
+# ======================================
 
-@app.route('/files/<file_id>')
-def download_file(file_id):
-    """Download a specific file by its ID."""
+@app.route('/image/<lab_id>')
+def get_lab_image(lab_id):
+
+    if lab_id not in LAB_FOLDER_MAP:
+        return jsonify({
+            'error': 'Laboratorio no encontrado'
+        }), 404
+
+    lab_folder = LAB_FOLDER_MAP[lab_id]
+
     try:
-        service = get_drive_service()
-        # Get file metadata
-        file_metadata = service.files().get(fileId=file_id).execute()
-        
-        # Download the file
-        request = service.files().get_media(fileId=file_id)
-        file_io = io.BytesIO()
-        downloader = MediaIoBaseDownload(file_io, request)
-        done = False
-        while done is False:
-            status, downloader = downloader.next_chunk()
-            if status:
-                done = status.progress() >= 1.0
-        
-        file_io.seek(0)
-        
-        # Return the file as a downloadable response
-        return send_file(
-            file_io,
-            download_name=file_metadata['name'],
-            mimetype=file_metadata['mimeType'],
-            as_attachment=True
+
+        all_images = []
+
+        # Buscar imágenes en todas las categorías
+        for category in CATEGORIES:
+
+            folder_path = os.path.join(
+                DATASET_FOLDER,
+                category,
+                lab_folder
+            )
+
+            print("Buscando en:", folder_path)
+
+            if os.path.exists(folder_path):
+
+                files = [
+                    f for f in os.listdir(folder_path)
+                    if f.lower().endswith((
+                        '.png',
+                        '.jpg',
+                        '.jpeg',
+                        '.webp'
+                    ))
+                ]
+
+                for file in files:
+                    all_images.append({
+                        'folder': folder_path,
+                        'file': file
+                    })
+
+        # Si no hay imágenes
+        if not all_images:
+            return jsonify({
+                'error': 'No se encontraron imágenes',
+                'lab_id': lab_id,
+                'lab_folder': lab_folder
+            }), 404
+
+        # Elegir una aleatoria
+        selected = random.choice(all_images)
+
+        print("Imagen enviada:", selected['file'])
+
+        return send_from_directory(
+            selected['folder'],
+            selected['file']
         )
+
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({
+            'error': str(e)
+        }), 500
+
+# ======================================
+# RUN
+# ======================================
 
 if __name__ == '__main__':
-    # Run the app
-    app.run(host='0.0.0.0', port=5000, debug=True)
+
+    print("===================================")
+    print("AforoLAB Backend")
+    print("PROJECT_ROOT:", PROJECT_ROOT)
+    print("DATASET_FOLDER:", DATASET_FOLDER)
+    print("===================================")
+
+    app.run(
+        host='0.0.0.0',
+        port=5000,
+        debug=True
+    )

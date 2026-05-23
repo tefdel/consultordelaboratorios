@@ -4,14 +4,11 @@
    ============================================= */
 
 const LABS_DATA = [
-  { id: 'lab-comp-1',     name: 'Lab. Computadores 1',         icon: '🖥️', building: 'Bloque 9', floor: 'Piso 1', capacity: 35, current: 28 },
-  { id: 'lab-comp-2',     name: 'Lab. Computadores 2',         icon: '💻', building: 'Bloque 9', floor: 'Piso 2', capacity: 30, current: 12 },
-  { id: 'lab-electronica',name: 'Lab. Electrónica',            icon: '🔌', building: 'Bloque 7', floor: 'Piso 1', capacity: 24, current: 22 },
-  { id: 'lab-redes',      name: 'Lab. Redes',                  icon: '🌐', building: 'Bloque 9', floor: 'Piso 3', capacity: 28, current: 5  },
-  { id: 'lab-software',   name: 'Lab. Ingeniería de Software', icon: '⚙️', building: 'Bloque 8', floor: 'Piso 2', capacity: 32, current: 31 },
-  { id: 'lab-multimedia', name: 'Lab. Multimedia',             icon: '🎨', building: 'Bloque 5', floor: 'Piso 1', capacity: 20, current: 0  },
   { id: 'lab-fisica',     name: 'Lab. Física',                 icon: '🔭', building: 'Bloque 6', floor: 'Piso 1', capacity: 22, current: 16 },
-  { id: 'lab-innovacion', name: 'Lab. Innovación',             icon: '💡', building: 'Bloque 10',floor: 'Piso 3', capacity: 18, current: 9  },
+  { id: 'lab-grafica',    name: 'Grafica Lab',                 icon: '🎨', building: 'Bloque 5', floor: 'Piso 1', capacity: 20, current: 0  },
+  { id: 'lab-informatica',name: 'Laboratorios Informática',    icon: '💻', building: 'Bloque 9', floor: 'Piso 2', capacity: 65, current: 40 },
+  { id: 'lab-ingenieria', name: 'Lab. Ingeniería',             icon: '⚙️', building: 'Bloque 8', floor: 'Piso 2', capacity: 32, current: 31 },
+  { id: 'zonas-estudio',  name: 'Zonas de Estudio',            icon: '📚', building: 'Bloque 1', floor: 'Piso 1', capacity: 50, current: 25 },
 ];
 
 /* Colores para cada estado */

@@ -3,6 +3,9 @@
    Lógica de la página principal (index.html)
    ============================================= */
 
+// Backend API base URL
+const API_BASE = 'http://localhost:5000';
+
 /* Estado reactivo: copia mutable de los datos base */
 let labs = LABS_DATA.map(l => ({ ...l, updatedAt: new Date().toISOString() }));
 
@@ -16,13 +19,15 @@ function populateSelects() {
 
 /* ─── LABFINDER ─── */
 function renderFinder() {
-  const id  = document.getElementById('lab-select').value;
+  const id = document.getElementById('lab-select').value;
   const lab = labs.find(l => l.id === id);
   const grid = document.getElementById('finder-grid');
   if (!lab) { grid.innerHTML = ''; return; }
 
   const status = getStatus(lab.current, lab.capacity);
-  const pct    = Math.round((lab.current / lab.capacity) * 100);
+  const pct = Math.round((lab.current / lab.capacity) * 100);
+
+  const labImage = `${API_BASE}/image/${lab.id}`;
 
   grid.innerHTML = `
     <!-- Tarjeta de datos en tiempo real -->
@@ -53,7 +58,7 @@ function renderFinder() {
     <!-- Tarjeta de cámara + consulta histórica -->
     <div class="cam-card">
       <div class="cam-wrap">
-        <img src="https://picsum.photos/seed/${lab.id}/800/450" alt="Cámara en vivo de ${lab.name}" />
+        <img src="${labImage}" alt="Cámara en vivo de ${lab.name}" onerror="this.src='https://picsum.photos/seed/${lab.id}/800/450'" />
         <div class="cam-overlay"></div>
         <div class="cam-live"><span class="live-dot"></span> EN VIVO</div>
         <div class="cam-id">📷 CAM-${lab.id.toUpperCase()}</div>
@@ -88,9 +93,9 @@ function queryHistorical(labId, capacity) {
   const t = document.getElementById('hist-time').value;
   if (!t) return;
   const [hh, mm] = t.split(':').map(Number);
-  const count  = simulateHistorical(labId, capacity, hh, mm);
+  const count = simulateHistorical(labId, capacity, hh, mm);
   const status = getStatus(count, capacity);
-  const pct    = Math.round((count / capacity) * 100);
+  const pct = Math.round((count / capacity) * 100);
 
   document.getElementById('hist-result').innerHTML = `
     <div class="hist-result">
@@ -116,7 +121,7 @@ function renderGrid() {
   );
   document.getElementById('labs-grid').innerHTML = sorted.map(lab => {
     const status = getStatus(lab.current, lab.capacity);
-    const pct    = Math.round((lab.current / lab.capacity) * 100);
+    const pct = Math.round((lab.current / lab.capacity) * 100);
     return `
       <article class="lab-card">
         <div class="lab-card-top">
@@ -175,8 +180,8 @@ function renderAlerts() {
         <p class="alert-body">
           <strong>${lab.current}</strong> personas detectadas vs. límite de <strong>${lab.capacity}</strong>
           ${lab.current > lab.capacity
-            ? `<span class="alert-sobrecupo">(sobrecupo +${lab.current - lab.capacity})</span>`
-            : ''}
+      ? `<span class="alert-sobrecupo">(sobrecupo +${lab.current - lab.capacity})</span>`
+      : ''}
         </p>
         <p class="alert-meta">${lab.building} · ${lab.floor} · ${fmtTime(lab.updatedAt)}</p>
       </div>
@@ -188,7 +193,7 @@ function renderAlerts() {
 function simulateTick() {
   labs = labs.map(l => {
     const delta = Math.floor(Math.random() * 5) - 2;
-    const next  = Math.max(0, Math.min(l.capacity + 2, l.current + delta));
+    const next = Math.max(0, Math.min(l.capacity + 2, l.current + delta));
     return { ...l, current: next, updatedAt: new Date().toISOString() };
   });
   renderGrid();
