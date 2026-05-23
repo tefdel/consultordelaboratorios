@@ -5,7 +5,6 @@
 
 /* Estado reactivo: copia mutable de los datos base */
 let labs = LABS_DATA.map(l => ({ ...l, updatedAt: new Date().toISOString() }));
-let reports = [];
 
 /* ─── Inicializar selectores ─── */
 function populateSelects() {
@@ -13,8 +12,6 @@ function populateSelects() {
     `<option value="${l.id}">${l.icon} ${l.name}</option>`
   ).join('');
   document.getElementById('lab-select').innerHTML = opts;
-  document.getElementById('r-lab').innerHTML =
-    '<option value="">Selecciona un laboratorio</option>' + opts;
 }
 
 /* ─── LABFINDER ─── */
@@ -187,86 +184,6 @@ function renderAlerts() {
   `).join('');
 }
 
-/* ─── REPORT ISSUE ─── */
-const TYPE_LABEL = {
-  'conteo-alto': 'Conteo alto',
-  'conteo-bajo': 'Conteo bajo',
-  'camara':      'Cámara',
-  'otro':        'Otro',
-};
-
-document.getElementById('r-lab').addEventListener('change', function () {
-  const lab = labs.find(l => l.id === this.value);
-  document.getElementById('r-lab-info').textContent = lab
-    ? `Conteo actual del sistema: ${lab.current} / ${lab.capacity}`
-    : '';
-});
-
-document.getElementById('submit-report').addEventListener('click', function () {
-  const labId = document.getElementById('r-lab').value;
-  const type  = document.getElementById('r-type').value;
-  const desc  = document.getElementById('r-desc').value.trim();
-  if (!labId || !type || !desc) return;
-
-  const lab   = labs.find(l => l.id === labId);
-  const count = document.getElementById('r-count').value;
-  const email = document.getElementById('r-email').value;
-
-  reports.unshift({
-    id: Date.now(),
-    labName: lab.name,
-    type,
-    count,
-    systemCount: lab.current,
-    desc,
-    email,
-    createdAt: new Date().toISOString(),
-  });
-
-  /* Reset form */
-  ['r-lab', 'r-type'].forEach(id => document.getElementById(id).value = '');
-  ['r-count', 'r-email', 'r-desc'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('r-lab-info').textContent = '';
-
-  /* Success message */
-  const msg = document.getElementById('r-success');
-  msg.style.display = 'flex';
-  setTimeout(() => msg.style.display = 'none', 4000);
-
-  renderReports();
-});
-
-function renderReports() {
-  document.getElementById('report-count-title').textContent =
-    `Reportes recientes (${reports.length})`;
-
-  if (reports.length === 0) {
-    document.getElementById('report-list').innerHTML =
-      '<p class="empty-msg">Aún no hay reportes registrados en esta sesión.</p>';
-    return;
-  }
-
-  document.getElementById('report-list').innerHTML = `
-    <div class="report-list">
-      ${reports.map(r => `
-        <div class="report-item">
-          <div class="report-top">
-            <span class="report-lab-name">${r.labName}</span>
-            <span class="report-tag">${TYPE_LABEL[r.type] || r.type}</span>
-          </div>
-          <p style="font-size:11px;color:var(--text-muted);margin-bottom:4px">
-            Sistema: ${r.systemCount}${r.count ? ` · Real: ${r.count}` : ''}
-          </p>
-          <p style="font-size:12px;color:var(--text)">${r.desc}</p>
-          <p style="font-size:10px;color:var(--text-muted);margin-top:6px">
-            ${new Date(r.createdAt).toLocaleString('es-CO')}
-          </p>
-        </div>
-      `).join('')}
-    </div>
-  `;
-}
-
 /* ─── SIMULATE TICK (auto-refresh cada 30 s) ─── */
 function simulateTick() {
   labs = labs.map(l => {
@@ -284,5 +201,4 @@ populateSelects();
 renderFinder();
 renderGrid();
 renderAlerts();
-renderReports();
 setInterval(simulateTick, 30_000);

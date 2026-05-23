@@ -65,58 +65,6 @@
       <div id="alerts-container"></div>
     </section>
 
-    <!-- REPORT ISSUE -->
-    <section id="report-section">
-      <div class="report-title-row">
-        <div class="report-icon-box">⚠️</div>
-        <div>
-          <h2>Reportar error de conteo</h2>
-          <p class="section-sub">Si detectas una inconsistencia en el conteo de un laboratorio, repórtala aquí.</p>
-        </div>
-      </div>
-      <div class="report-grid">
-        <div class="card">
-          <div class="form-group">
-            <label for="r-lab">Laboratorio *</label>
-            <select id="r-lab"></select>
-            <p id="r-lab-info" class="form-hint"></p>
-          </div>
-          <div class="form-group">
-            <label for="r-type">Tipo de error *</label>
-            <select id="r-type">
-              <option value="">Selecciona el tipo</option>
-              <option value="conteo-alto">El sistema cuenta MÁS personas de las que hay</option>
-              <option value="conteo-bajo">El sistema cuenta MENOS personas de las que hay</option>
-              <option value="camara">Problema con la cámara o señal</option>
-              <option value="otro">Otro error</option>
-            </select>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="r-count">Conteo real observado</label>
-              <input id="r-count" type="number" min="0" placeholder="Ej: 15" />
-            </div>
-            <div class="form-group">
-              <label for="r-email">Correo institucional</label>
-              <input id="r-email" type="email" placeholder="usuario@uao.edu.co" />
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="r-desc">Descripción del problema *</label>
-            <textarea id="r-desc" rows="4" placeholder="Describe lo observado: hora aproximada, condiciones de iluminación, ubicación de las personas, etc."></textarea>
-          </div>
-          <button class="btn btn-primary btn-full" id="submit-report">✉️ Enviar reporte</button>
-          <div id="r-success" class="success-msg" style="display:none">✅ Reporte enviado. Equipo PDI lo revisará pronto.</div>
-        </div>
-        <div class="card">
-          <h3 id="report-count-title">Reportes recientes (0)</h3>
-          <div id="report-list" style="margin-top:14px">
-            <p class="empty-msg">Aún no hay reportes registrados en esta sesión.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
   </main>
 
   <!-- FOOTER -->
