@@ -1,6 +1,9 @@
 import os
-import random
-from flask import Flask, jsonify, send_from_directory
+import cv2
+
+from ultralytics import YOLO
+
+from flask import Flask, jsonify, send_file
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -12,14 +15,35 @@ CORS(app)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Subir un nivel desde /backend
-PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, '..'))
+PROJECT_ROOT = os.path.abspath(
+    os.path.join(BASE_DIR, '..')
+)
 
-# Ruta de la carpeta del dataset
-DATASET_FOLDER = os.path.join(PROJECT_ROOT, 'Lab_aforo')
+DATASET_FOLDER = os.path.join(
+    PROJECT_ROOT,
+    'Lab_aforo'
+)
+
+OUTPUT_FOLDER = os.path.join(
+    BASE_DIR,
+    'outputs'
+)
+
+os.makedirs(
+    OUTPUT_FOLDER,
+    exist_ok=True
+)
 
 # ======================================
-# MAPEO DE LABORATORIOS
+# YOLO
+# ======================================
+
+print('Cargando YOLOv8...')
+
+yolo_model = YOLO('yolov8n.pt')
+
+# ======================================
+# MAPEO LABS
 # ======================================
 
 LAB_FOLDER_MAP = {
@@ -30,7 +54,10 @@ LAB_FOLDER_MAP = {
     'zonas-estudio': 'zonaestudio'
 }
 
-# Carpetas del dataset
+# ======================================
+# CATEGORÍAS
+# ======================================
+
 CATEGORIES = [
     'Labs_Disponibles',
     'Labs_Llenos',
@@ -43,30 +70,34 @@ CATEGORIES = [
 
 @app.route('/')
 def index():
+
     return jsonify({
-        'message': 'AforoLAB API funcionando',
-        'dataset': DATASET_FOLDER
+        'message': 'YOLO funcionando'
     })
 
 # ======================================
-# OBTENER IMAGEN DE LAB
+# DETECT
 # ======================================
 
-@app.route('/image/<lab_id>')
-def get_lab_image(lab_id):
+@app.route('/detect/<lab_id>')
+def detect(lab_id):
 
     if lab_id not in LAB_FOLDER_MAP:
-        return jsonify({
-            'error': 'Laboratorio no encontrado'
-        }), 404
 
-    lab_folder = LAB_FOLDER_MAP[lab_id]
+        return jsonify({
+            'error': 'Lab no encontrado'
+        }), 404
 
     try:
 
-        all_images = []
+        lab_folder = LAB_FOLDER_MAP[lab_id]
 
-        # Buscar imágenes en todas las categorías
+        image_path = None
+
+        # ==================================
+        # BUSCAR PRIMERA IMAGEN
+        # ==================================
+
         for category in CATEGORIES:
 
             folder_path = os.path.join(
@@ -75,60 +106,190 @@ def get_lab_image(lab_id):
                 lab_folder
             )
 
-            print("Buscando en:", folder_path)
-
             if os.path.exists(folder_path):
 
-                files = [
+                files = sorted([
+
                     f for f in os.listdir(folder_path)
+
                     if f.lower().endswith((
                         '.png',
                         '.jpg',
-                        '.jpeg',
-                        '.webp'
+                        '.jpeg'
                     ))
-                ]
 
-                for file in files:
-                    all_images.append({
-                        'folder': folder_path,
-                        'file': file
-                    })
+                ])
 
-        # Si no hay imágenes
-        if not all_images:
+                if files:
+
+                    image_path = os.path.join(
+                        folder_path,
+                        files[0]
+                    )
+
+                    break
+
+        # ==================================
+        # VALIDACIÓN
+        # ==================================
+
+        if image_path is None:
+
             return jsonify({
-                'error': 'No se encontraron imágenes',
-                'lab_id': lab_id,
-                'lab_folder': lab_folder
+                'error': 'No hay imágenes'
             }), 404
 
-        # Elegir una aleatoria
-        selected = random.choice(all_images)
+        # ==================================
+        # LEER IMAGEN
+        # ==================================
 
-        print("Imagen enviada:", selected['file'])
-
-        return send_from_directory(
-            selected['folder'],
-            selected['file']
+        image = cv2.imread(
+            image_path
         )
 
+        # ==================================
+        # YOLO
+        # ==================================
+
+        results = yolo_model(
+            image_path
+        )
+
+        people_count = 0
+
+        for result in results:
+
+            for box in result.boxes:
+
+                cls = int(box.cls[0])
+
+                # PERSONA
+                if cls == 0:
+
+                    people_count += 1
+
+                    x1, y1, x2, y2 = map(
+                        int,
+                        box.xyxy[0]
+                    )
+
+                    # RECTÁNGULO
+                    cv2.rectangle(
+                        image,
+                        (x1, y1),
+                        (x2, y2),
+                        (0, 255, 0),
+                        2
+                    )
+
+                    # TEXTO
+                    cv2.putText(
+                        image,
+                        'Persona',
+                        (x1, y1 - 10),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.5,
+                        (0, 255, 0),
+                        2
+                    )
+
+        # ==================================
+        # ESTADO
+        # ==================================
+
+        if people_count == 0:
+
+            estado = 'Disponible'
+
+        elif people_count < 15:
+
+            estado = 'Medio'
+
+        else:
+
+            estado = 'Lleno'
+
+        # ==================================
+        # TEXTO FINAL
+        # ==================================
+
+        cv2.putText(
+            image,
+            f'Personas: {people_count}',
+            (20, 40),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1,
+            (0, 0, 255),
+            3
+        )
+
+        cv2.putText(
+            image,
+            f'Estado: {estado}',
+            (20, 90),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1,
+            (255, 0, 0),
+            3
+        )
+
+        # ==================================
+        # GUARDAR
+        # ==================================
+
+        output_path = os.path.join(
+            OUTPUT_FOLDER,
+            f'{lab_id}.jpg'
+        )
+
+        cv2.imwrite(
+            output_path,
+            image
+        )
+
+        # ==================================
+        # RESPUESTA
+        # ==================================
+
+        return jsonify({
+
+            'people': people_count,
+
+            'cnn_label': estado,
+
+            'image_url':
+                f'http://localhost:5000/output/{lab_id}'
+
+        })
+
     except Exception as e:
+
         return jsonify({
             'error': str(e)
         }), 500
+
+# ======================================
+# SERVIR IMAGEN
+# ======================================
+
+@app.route('/output/<lab_id>')
+def output_image(lab_id):
+
+    output_path = os.path.join(
+        OUTPUT_FOLDER,
+        f'{lab_id}.jpg'
+    )
+
+    return send_file(
+        output_path,
+        mimetype='image/jpeg'
+    )
 
 # ======================================
 # RUN
 # ======================================
 
 if __name__ == '__main__':
-
-    print("===================================")
-    print("AforoLAB Backend")
-    print("PROJECT_ROOT:", PROJECT_ROOT)
-    print("DATASET_FOLDER:", DATASET_FOLDER)
-    print("===================================")
 
     app.run(
         host='0.0.0.0',
