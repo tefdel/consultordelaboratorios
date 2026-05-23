@@ -1,27 +1,202 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>AforoLAB UAO — Monitoreo de aforo en tiempo real</title>
-  <meta name="description" content="Sistema de visión computacional para monitorear el aforo de laboratorios de la UAO con YOLOv8 + DeepSORT." />
+
+  <meta name="description"
+    content="Sistema de visión computacional para monitorear el aforo de laboratorios de la UAO con YOLOv8 + DeepSORT." />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet" />
+
   <link rel="stylesheet" href="styles.css" />
+
+  <!-- CSS DE HORARIO -->
+  <style>
+
+    #horario-section {
+      max-width: 1200px;
+      margin: 0 auto 60px;
+      padding: 0 20px;
+    }
+
+    .hs-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: flex-end;
+      margin-top: 20px;
+    }
+
+    .hs-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+      min-width: 220px;
+    }
+
+    .hs-field label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted, #6B7280);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .hs-field select {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border, #E5E7EB);
+      background: var(--surface, #fff);
+      color: var(--text, #111827);
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+
+    .hs-loading {
+      color: var(--text-muted, #6B7280);
+      padding: 24px 0;
+      font-size: 1rem;
+    }
+
+    .hs-error {
+      color: #C8102E;
+      padding: 20px;
+    }
+
+    .hs-card {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 24px;
+      background: var(--surface, #fff);
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border, #E5E7EB);
+      box-shadow: 0 4px 20px rgba(0,0,0,.06);
+    }
+
+    @media (max-width: 768px) {
+      .hs-card {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .hs-info {
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .hs-info-top {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .hs-lab-icon {
+      font-size: 2.2rem;
+    }
+
+    .hs-lab-name {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .hs-lab-sub {
+      font-size: 0.82rem;
+      color: var(--text-muted, #6B7280);
+      margin: 2px 0 0;
+    }
+
+    .hs-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .hs-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.88rem;
+    }
+
+    .hs-meta-label {
+      color: var(--text-muted, #6B7280);
+    }
+
+    .hs-people {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--accent, #C8102E);
+    }
+
+    .hs-tip {
+      font-size: 0.8rem;
+      color: var(--text-muted, #6B7280);
+      background: var(--surface-alt, #F9FAFB);
+      border-radius: 8px;
+      padding: 10px 14px;
+      line-height: 1.5;
+    }
+
+    .hs-img-wrap {
+      position: relative;
+      overflow: hidden;
+      min-height: 280px;
+      background: #000;
+    }
+
+    .hs-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity .4s ease;
+    }
+
+    .hs-img.loaded {
+      opacity: 1;
+    }
+
+  </style>
+
 </head>
+
 <body>
 
   <!-- HEADER -->
   <header id="site-header">
     <div class="header-inner">
+
       <a class="logo-box" href="index.html">
         <div class="logo-badge">UAO</div>
-        <span class="uni-name">Universidad Autónoma de Occidente</span>
+        <span class="uni-name">
+          Universidad Autónoma de Occidente
+        </span>
       </a>
-      <div class="site-title">Aforo<span>LAB</span></div>
+
+      <div class="site-title">
+        Aforo<span>LAB</span>
+      </div>
+
       <div class="header-right">
-        <a class="nav-link" href="admin.html">Dashboard</a>
+
+        <a class="nav-link" href="admin.html">
+          Dashboard
+        </a>
+
         <div class="status-pill">
           <div class="dot-wrap">
             <div class="dot-ping"></div>
@@ -29,6 +204,7 @@
           </div>
           <span>Sistema activo</span>
         </div>
+
       </div>
     </div>
   </header>
@@ -38,61 +214,158 @@
 
     <!-- LABFINDER -->
     <section id="labfinder-section">
+
       <h2>¿Está disponible mi laboratorio?</h2>
-      <p class="section-sub">Consulta el aforo en tiempo real detectado por el pipeline YOLOv8 + DeepSORT.</p>
+
+      <p class="section-sub">
+        Consulta el aforo en tiempo real detectado
+        por el pipeline YOLOv8 + DeepSORT.
+      </p>
+
       <div class="lf-select">
-        <label for="lab-select">Selecciona un laboratorio</label>
+        <label for="lab-select">
+          Selecciona un laboratorio
+        </label>
+
         <select id="lab-select"></select>
       </div>
+
       <div class="lf-grid" id="finder-grid"></div>
+
     </section>
 
-    <!-- LABS GRID -->
+    <!-- HORARIO -->
+    <section id="horario-section">
+
+      <h2>¿Cuándo puedo ir? Consulta por horario</h2>
+
+      <p class="section-sub">
+        Selecciona un laboratorio y una franja horaria
+        para ver cómo estará según datos históricos
+        procesados con YOLOv8.
+      </p>
+
+      <div class="hs-controls">
+
+        <div class="hs-field">
+          <label for="hs-lab">Laboratorio</label>
+          <select id="hs-lab"></select>
+        </div>
+
+        <div class="hs-field">
+          <label for="hs-franja">Franja horaria</label>
+          <select id="hs-franja"></select>
+        </div>
+
+        <button id="hs-btn" class="btn btn-primary">
+          🔍 Consultar
+        </button>
+
+      </div>
+
+      <div id="hs-result" style="margin-top: 24px;"></div>
+
+    </section>
+
+    <!-- GRID -->
     <section id="grid-section">
+
       <div class="section-header">
+
         <div>
           <h2>Estado general de laboratorios</h2>
-          <p class="section-sub">Ordenados por nivel de ocupación · auto-refresh cada 30 s</p>
+
+          <p class="section-sub">
+            Ordenados por nivel de ocupación · auto-refresh cada 30 s
+          </p>
         </div>
+
       </div>
+
       <div class="labs-grid" id="labs-grid"></div>
+
     </section>
 
-    <!-- ALERTS -->
+    <!-- ALERTAS -->
     <section id="alerts-section">
+
       <h2>Alertas activas</h2>
-      <p class="section-sub">Generadas automáticamente por la lógica de aforo del sistema.</p>
+
+      <p class="section-sub">
+        Generadas automáticamente por la lógica de aforo del sistema.
+      </p>
+
       <div id="alerts-container"></div>
+
     </section>
 
   </main>
 
   <!-- FOOTER -->
   <footer>
+
     <div class="footer-inner">
+
       <div class="footer-col">
+
         <div class="footer-col-top">
+
           <div class="footer-logo">UAO</div>
+
           <div>
-            <div class="footer-title">Universidad Autónoma de Occidente</div>
-            <div class="footer-text">Cali — Colombia</div>
+            <div class="footer-title">
+              Universidad Autónoma de Occidente
+            </div>
+
+            <div class="footer-text">
+              Cali — Colombia
+            </div>
           </div>
+
         </div>
       </div>
+
       <div class="footer-col">
-        <div class="footer-title">Equipo AforoLAB</div>
-        <div class="footer-text">Proyecto de Procesamiento Digital de Imágenes</div>
-        <div class="footer-text">YOLOv8 · DeepSORT · OpenCV · Flask</div>
+
+        <div class="footer-title">
+          Equipo AforoLAB
+        </div>
+
+        <div class="footer-text">
+          Proyecto de Procesamiento Digital de Imágenes
+        </div>
+
+        <div class="footer-text">
+          YOLOv8 · DeepSORT · OpenCV · Flask
+        </div>
+
       </div>
+
       <div class="footer-col footer-right">
-        <div class="footer-title">Materia: PDI</div>
-        <div class="footer-text">Semestre 2025</div>
-        <div class="footer-copy">© 2025 AforoLAB-UAO</div>
+
+        <div class="footer-title">
+          Materia: PDI
+        </div>
+
+        <div class="footer-text">
+          Semestre 2026-1
+        </div>
+
+        <div class="footer-copy">
+          © 2026 AforoLAB-UAO
+        </div>
+
       </div>
+
     </div>
+
   </footer>
 
+  <!-- SCRIPTS -->
   <script src="data.js"></script>
   <script src="app.js"></script>
+  <script src="horario.js"></script>
+
 </body>
+
 </html>
