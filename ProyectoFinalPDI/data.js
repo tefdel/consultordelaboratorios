@@ -6,8 +6,8 @@
 const LABS_DATA = [
   { id: 'lab-fisica',     name: 'Lab. Física',                 icon: '🔭', building: 'Bloque 6', floor: 'Piso 1', capacity: 22, current: 16 },
   { id: 'lab-grafica',    name: 'Grafica Lab',                 icon: '🎨', building: 'Bloque 5', floor: 'Piso 1', capacity: 20, current: 0  },
-  { id: 'lab-informatica',name: 'Laboratorios Informática',    icon: '💻', building: 'Bloque 9', floor: 'Piso 2', capacity: 65, current: 40 },
-  { id: 'lab-ingenieria', name: 'Lab. Ingeniería',             icon: '⚙️', building: 'Bloque 8', floor: 'Piso 2', capacity: 32, current: 31 },
+  { id: 'lab-informatica',name: 'Lab. IT',    icon: '💻', building: 'Bloque 9', floor: 'Piso 2', capacity: 65, current: 40 },
+  { id: 'lab-ingenieria', name: 'Lab. Inge',             icon: '⚙️', building: 'Bloque 8', floor: 'Piso 2', capacity: 32, current: 31 },
   { id: 'zonas-estudio',  name: 'Zonas de Estudio',            icon: '📚', building: 'Bloque 1', floor: 'Piso 1', capacity: 50, current: 25 },
 ];
 
