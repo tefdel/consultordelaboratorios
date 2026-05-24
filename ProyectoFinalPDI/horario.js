@@ -11,14 +11,14 @@
 // =============================================
 
 const FRANJAS = [
-  { desde: 6.0,  hasta: 7.0,  label: 'Laboratorio vacío   (06:00 – 07:00)', categoria: 'Vacio'      },
-  { desde: 7.0,  hasta: 8.5,  label: 'Hora más suave       (07:00 – 08:30)', categoria: 'Disponible' },
-  { desde: 8.5,  hasta: 12.0, label: 'Hora pico            (08:30 – 12:00)', categoria: 'Lleno'      },
-  { desde: 12.0, hasta: 13.0, label: 'Laboratorio vacío   (12:00 – 13:00)', categoria: 'Vacio'      },
-  { desde: 13.0, hasta: 15.0, label: 'Hora más suave       (13:00 – 15:00)', categoria: 'Disponible' },
-  { desde: 15.0, hasta: 17.0, label: 'Hora pico            (15:00 – 17:00)', categoria: 'Lleno'      },
-  { desde: 17.0, hasta: 20.0, label: 'Hora más suave       (17:00 – 20:00)', categoria: 'Disponible' },
-  { desde: 20.0, hasta: 21.5, label: 'Laboratorio vacío   (20:00 – 21:30)', categoria: 'Vacio'      },
+  { desde: 6.0,  hasta: 7.0,  label: '(06:00 – 07:00)', categoria: 'Vacio'      },
+  { desde: 7.0,  hasta: 8.5,  label: '(07:00 – 08:30)', categoria: 'Disponible' },
+  { desde: 8.5,  hasta: 12.0, label: '(08:30 – 12:00)', categoria: 'Lleno'      },
+  { desde: 12.0, hasta: 13.0, label: '(12:00 – 13:00)', categoria: 'Vacio'      },
+  { desde: 13.0, hasta: 15.0, label: '(13:00 – 15:00)', categoria: 'Disponible' },
+  { desde: 15.0, hasta: 17.0, label: '(15:00 – 17:00)', categoria: 'Lleno'      },
+  { desde: 17.0, hasta: 20.0, label: '(17:00 – 20:00)', categoria: 'Disponible' },
+  { desde: 20.0, hasta: 21.5, label: '(20:00 – 21:30)', categoria: 'Vacio'      },
 ];
 
 const CATEGORIA_BADGE = {
